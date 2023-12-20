@@ -1,0 +1,225 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Oct 25 12:04:40 2023
+
+@author: rdkul
+"""
+
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Oct 21 12:02:18 2023
+
+@author: rdkul
+"""
+
+import math
+import random
+import matplotlib.pyplot as plt
+import numpy as np
+import sys
+class Metropolis_MC():
+    
+    def __init__(self,sequence_of_residues,sequence_array,energy_array):
+        self.sequence_of_residues = sequence_of_residues
+        self.sequence_array = sequence_array
+        self.energy_array = energy_array
+        
+    def energy_calculation():
+        solvent_res_energy = 0
+        seq_res_energy = 0 # Energy of sequence
+        total_seq_energy = 0 # Sum of solvent and internal sequence energies
+        count_H_edge = 0
+        count_P_edge = 0
+        count_H_vertex = 0
+        count_P_vertex = 0
+        
+        '''Calculating residue-solvent energy'''
+        
+        for i in range(0,4):
+            for j in range(0,4):
+                
+                if i==0 or i==3:
+                    if j==0 or j==3:
+                        if sequence_of_residues[i][j] == 'H':
+                            count_H_vertex+=1
+                        else :
+                            count_P_vertex+=1
+                    elif j==1 or j==2:
+                        if sequence_of_residues[i][j] == 'H':
+                            count_H_edge+=1
+                        else :
+                            count_P_edge+=1
+                elif i==1 or i==2:
+                    if j==0 or j==3:
+                        if sequence_of_residues[i][j] == 'H':
+                            count_H_edge+=1
+                        else:
+                            count_P_edge+=1
+                    elif j==1 or j==2:
+                        continue
+        
+        solvent_res_energy = count_H_vertex*1 + count_H_edge*0 + count_P_vertex*(-2) + count_P_edge*(-1)
+        
+        '''Calculate H-H. P-P and H-P/P-H energies'''
+        # Defining all the residues
+        res_1 = sequence_of_residues[0][0]
+        res_2 = sequence_of_residues[0][1]
+        res_3 = sequence_of_residues[1][1]
+        res_4 = sequence_of_residues[1][0]
+        res_5 = sequence_of_residues[2][0]
+        res_6 = sequence_of_residues[3][0]
+        res_7 = sequence_of_residues[3][1]
+        res_8 = sequence_of_residues[2][1]
+        res_9 = sequence_of_residues[2][2]
+        res_10 = sequence_of_residues[3][2]
+        res_11 = sequence_of_residues[3][3]
+        res_12 = sequence_of_residues[2][3]
+        res_13 = sequence_of_residues[1][3]
+        res_14 = sequence_of_residues[1][2]
+        res_15 = sequence_of_residues[0][2]
+        res_16 = sequence_of_residues[0][3]
+        
+        # Residue pairs for interactions
+        
+        res_pair_1 = res_1+res_3
+        res_pair_2 = res_1+res_4
+        res_pair_3 = res_2+res_4
+        res_pair_4 = res_2+res_14
+        res_pair_5 = res_2+res_15
+        res_pair_6 = res_3+res_5
+        res_pair_7 = res_3+res_8
+        res_pair_8 = res_3+res_9
+        res_pair_9 = res_3+res_14
+        res_pair_10 = res_3+res_15
+        res_pair_11 = res_4+res_8
+        res_pair_12 = res_5+res_7
+        res_pair_13 = res_5+res_8
+        res_pair_14 = res_6+res_8
+        res_pair_15 = res_7+res_9
+        res_pair_16 = res_7+res_10
+        res_pair_17 = res_8+res_10
+        res_pair_18 = res_8+res_14
+        res_pair_19 = res_9+res_11
+        res_pair_20 = res_9+res_12
+        res_pair_21 = res_9+res_13
+        res_pair_22 = res_9+res_14
+        res_pair_23 = res_10+res_12
+        res_pair_24 = res_12+res_14
+        res_pair_25 = res_13+res_15
+        res_pair_26 = res_13+res_16
+        res_pair_27 = res_14+res_16
+        
+        # Counts of residue pairs
+        
+        res_pair_array = [res_pair_1,res_pair_2,res_pair_3,res_pair_4,res_pair_5,res_pair_6,res_pair_7,res_pair_8,res_pair_9,res_pair_10,res_pair_11,res_pair_12,res_pair_13,res_pair_14,res_pair_15,res_pair_16,res_pair_17,res_pair_18,res_pair_19,res_pair_20,res_pair_21,res_pair_22,res_pair_23,res_pair_24,res_pair_25,res_pair_26,res_pair_27]
+        HH_count=0
+        HP_count=0
+        PP_count=0
+        
+        for residue_pair in res_pair_array:
+            if residue_pair=='HH':
+                HH_count+=1
+            elif residue_pair=='HP' or residue_pair=='PH':
+                HP_count+=1
+            else:
+                PP_count+=1
+        
+        # Calculation of energy
+        
+        seq_res_energy = HH_count*(-3) + HP_count*0 + PP_count*(-2)
+        total_seq_energy = seq_res_energy + solvent_res_energy
+        
+        return total_seq_energy
+
+    def moveset_mc(mc_counter):
+        if mc_counter<=50000:
+            for i in range(0,2):
+                rand_num_1 = random.randint(0,3)
+                rand_num_2 = random.randint(0,3)
+                if sequence_of_residues[rand_num_1][rand_num_2] == 'H':
+                    sequence_of_residues[rand_num_1][rand_num_2] = 'P'
+                else:
+                    sequence_of_residues[rand_num_1][rand_num_2] = 'H'
+        else:
+            rand_num_1 = random.randint(0,3)
+            rand_num_2 = random.randint(0,3)
+            if sequence_of_residues[rand_num_1][rand_num_2] == 'H': 
+                sequence_of_residues[rand_num_1][rand_num_2] = 'P'
+            else:
+                sequence_of_residues[rand_num_1][rand_num_2] = 'H'
+        
+        
+        return sequence_of_residues
+
+    def metropolis_criteria (energy_difference_counter):
+        energy_diff=0
+        prob_change_of_sequence=0
+        random_number=0
+        len_energy_arr = len(energy_array)
+        energy_diff = energy_array[len_energy_arr-1] - energy_array[len_energy_arr-2]
+        prob_change_of_sequence = math.exp(-(energy_diff))
+        if energy_diff<0:
+            return (True,energy_difference_counter)
+        elif energy_diff>0:
+            random_number = random.random()
+            if random_number<=prob_change_of_sequence:
+                return (True,energy_difference_counter)
+            else:
+                return (False,energy_difference_counter)
+        else:
+            energy_difference_counter+=1
+            return (False,energy_difference_counter)
+        
+       
+no_of_iterations = 100000 # Total No of steps in MC simulation
+sequence_array=[]
+zero_energy_diff_counter=0
+energy_array=[]
+mc_iteration = 0 
+sequence_of_residues=[['H','P','P','P'],['H','H','H','H'],['H','H','P','H'],['P','P','P','P']]
+# We will input the first sequence    
+constructor_met_mc = Metropolis_MC(sequence_of_residues, sequence_array, energy_array)
+first_sequence_energy = Metropolis_MC.energy_calculation()
+print("Initial structure for sequence of residues: \n", np.array(sequence_of_residues))
+print("Initial Sequence Energy: ", first_sequence_energy,"\n")
+sequence_array.append(sequence_of_residues)
+energy_array.append(first_sequence_energy)
+constructor_met_mc = Metropolis_MC(sequence_of_residues, sequence_array, energy_array) 
+
+while mc_iteration<=100000:
+
+    
+            sequence_of_residues = Metropolis_MC.moveset_mc(mc_iteration)
+            sequence_array.append(sequence_of_residues)   
+            constructor_met_mc = Metropolis_MC(sequence_of_residues, sequence_array, energy_array) 
+            new_energy = Metropolis_MC.energy_calculation()
+            energy_array.append(new_energy)
+            constructor_met_mc = Metropolis_MC(sequence_of_residues, sequence_array, energy_array)
+            met_crit = Metropolis_MC.metropolis_criteria(zero_energy_diff_counter)
+            boolean_condition = met_crit[0]
+            zero_energy_diff_counter = met_crit[1]
+            
+            if boolean_condition == True and zero_energy_diff_counter>=0:
+                mc_iteration+=1
+            elif boolean_condition == False and zero_energy_diff_counter>10:
+                with open('C:\Rishabh\IISER\Semesters\Semester 5\BI3134 Bioinformatics\Spyder Programs\Monte_Carlo_simulation_changed.txt', 'w') as f:
+                    sys.stdout = f
+                    print("Optimum structure for sequence of residues: \n",np.array(sequence_of_residues))
+                    print("Optimum energy: ", new_energy)
+                    sys.stdout = sys.__stdout__
+                    break
+            elif boolean_condition == False and zero_energy_diff_counter<=10:
+                sequence_array = sequence_array[:-1]
+                energy_array = energy_array[:-1]
+                energy_array.append(energy_array[len(energy_array)-1])
+                constructor_met_mc = Metropolis_MC(sequence_of_residues, sequence_array, energy_array)
+                mc_iteration+=1
+            
+iteration_array = list(range(0,len(energy_array)))
+plt.plot(iteration_array,energy_array)
+plt.xlabel("No. of iterations (steps) of Monte Carlo Simulation")
+plt.ylabel("Energy of the system")
+plt.title("Energy vs No. of iterations (MC simulation)")
+
+
+
